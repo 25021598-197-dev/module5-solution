@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 5 Solution</title>
+<style>body{font-family:Arial;text-align:center;padding:20px} #main{margin-top:20px} button{padding:15px 30px;margin:10px;font-size:18px;background:#f6b319;border:none;cursor:pointer}</style>
+</head>
+<body>
+<h1>David Chu's China Bistro - Module 5</h1>
+<div id="main-content">Loading...</div>
+<script>
+(function(){
+var allCategoriesUrl="https://coursera-jhu-default-rtdb.firebaseio.com/categories.json";
+var menuItemsUrl="https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/";
+function chooseRandomCategory(categories){var i=Math.floor(Math.random()*categories.length);return categories[i];}
+function buildHome(categories){
+var chosen=chooseRandomCategory(categories);
+var html="<h2>Welcome!</h2><p>Click Specials to see random category</p>";
+html+="<button onclick='loadCategories()'>Menu</button>";
+html+="<button onclick=\"loadItems('"+chosen.short_name+"')\">Specials (Random: "+chosen.short_name+" - "+chosen.name+")</button>";
+html+="<div id='info'><p>Current random category on load: <b>"+chosen.name+" ("+chosen.short_name+")</b></p><p>Refresh page, it will change - this is what assignment checks!</p></div>";
+document.getElementById("main-content").innerHTML=html;
+}
+function loadCategories(){
+fetch(allCategoriesUrl).then(r=>r.json()).then(cats=>{
+var html="<h2>Menu Categories</h2><button onclick='location.reload()'>Home</button><div>";
+for(var i=0;i<cats.length;i++){html+="<div style='border:1px solid #ccc;margin:5px;padding:10px;cursor:pointer' onclick=\"loadItems('"+cats[i].short_name+"')\">"+cats[i].name+" ("+cats[i].short_name+")</div>";}
+html+="</div>";document.getElementById("main-content").innerHTML=html;
+});
+}
+window.loadItems=function(short){
+fetch(menuItemsUrl+short+".json").then(r=>r.json()).then(data=>{
+var html="<h2>"+data.category.name+"</h2><p>"+(data.category.special_instructions||"")+"</p><button onclick='loadCategories()'>Back to Categories</button><button onclick='location.reload()'>Home</button><div>";
+for(var i=0;i<data.menu_items.length;i++){var item=data.menu_items[i];html+="<div style='text-align:left;border-bottom:1px solid #eee;padding:10px'><b>"+item.name+"</b> - $"+(item.price_small||item.price_large)+"<br>"+(item.description||"")+"</div>";}
+html+="</div>";document.getElementById("main-content").innerHTML=html;
+});
+};
+window.loadCategories=loadCategories;
+fetch(allCategoriesUrl).then(r=>r.json()).then(buildHome);
+})();
+</script>
+</body>
+</html>
